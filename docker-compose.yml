@@ -1,40 +1,65 @@
 version: "3.8"
 services:
-  xgproyect-v3:
+  ogame-xg-webserver:
+    container_name: ogame-xg-webserver
+    hostname: ogame-xg-webserver
     build:
       context: .
       args:
         PHP_VERSION: 7.4
-    container_name: xgproyect-v3
     restart: always
     ports:
-      - 80:80
-      - 443:443
+      - 8888:80
+      - 4433:443
     volumes:
-      - .:/var/www/html
+      - /mnt/VM-Storage/DockerApps/XG-Proyect/webserver-webroot:/var/www/html
     depends_on:
-      - db
-  db:
+      - ogame-xg-db
+    networks:
+      xg-net:
+      nginx-webserver-net:
+ 
+  ogame-xg-db:
+    container_name: ogame-xg-db
+    hostname: ogame-xg-db
     image: mysql:5.7
     restart: on-failure
     ports:
       - 33060:3306
     volumes:
-      - ./data:/docker-entrypoint-initdb.d
+      - /mnt/VM-Storage/DockerApps/XG-Proyect/database:/docker-entrypoint-initdb.d
     environment:
       MYSQL_DATABASE: xgp
       MYSQL_ROOT_PASSWORD: root
-  phpmyadmin:
+    networks:
+      xg-net:
+
+  ogame-xg-phpmyadmin:
+    container_name: ogame-xg-phpmyadmin
+    hostname: ogame-xg-phpmyadmin
     image: phpmyadmin/phpmyadmin
     ports:
       - 8081:80
     environment:
       MYSQL_ROOT_PASSWORD: root
-      PMA_HOST: db
-  mailhog:
+      PMA_HOST: ogame-xg-db
+    networks:
+      xg-net:
+
+  ogame-xg-mailhog:
+    container_name: ogame-xg-mailhog
+    hostname: ogame-xg-mailhog
     image: mailhog/mailhog
-    container_name: mailhog
     restart: on-failure
     ports:
       - 1025:1025 # smtp server
       - 8025:8025 # web ui
+    networks:
+      xg-net:
+
+networks:
+  nginx-webserver-net:
+    name: nginx-net
+    external: true
+  xg-net:
+    name: ogame-xg-net
